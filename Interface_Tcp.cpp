@@ -74,7 +74,7 @@ void Interface_Tcp::Read_Handler(const boost::system::error_code& error, size_t 
 
 void Interface_Tcp::Write_Start(char *Out_Buffer, int Length)
 {
-	boost::asio::async_write(m_Socket,
+	boost::asio::async_write(*m_Socket,
 		boost::asio::buffer(Out_Buffer, Length),
 		boost::bind(&Interface_Tcp::Write_Handler,
 			this,
