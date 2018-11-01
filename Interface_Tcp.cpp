@@ -42,7 +42,7 @@ int Interface_Tcp::ReadLen(char *In_Buffer, int Length)
 
 void Interface_Tcp::Read_Start()
 {
-	printf("Read_Start!\n");
+	//printf("Read_Start!\n");
 	m_Socket->async_read_some(boost::asio::buffer(m_Buffer_Read, MAX_BUFFER_READ),
 		boost::bind(&Interface_Tcp::Read_Handler,
 			this,
@@ -54,7 +54,7 @@ void Interface_Tcp::Read_Handler(const boost::system::error_code& error, size_t 
 {
 	if (!error)
 	{
-		printf("READ HANDLER!!!\n");		
+		//printf("READ HANDLER!!!\n");		
 		boost::lock_guard<boost::mutex> lock(m_mutex);
 		{
 			for (int i = 0; i < bytes_transferred; i++)
