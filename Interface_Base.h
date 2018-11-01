@@ -51,9 +51,3 @@ protected:
 	
 };
 
-class Interface_TCP{
-};
-
-class Interface_Router{
-
-};
