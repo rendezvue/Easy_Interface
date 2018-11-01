@@ -1,9 +1,6 @@
-#include "Interface_Base.h"
+#include "stdafx.h"
 
-bool Interface_Base::Start(char* comport, int baudrate)
-{
-	printf("[Interface_Base]ebugging for segfault!\n");
-}
+#include "Interface_Base.h"
 
 /*
 Interface_Base::Interface_Base(){

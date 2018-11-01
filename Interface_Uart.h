@@ -19,6 +19,7 @@ public:
 	~Interface_Uart();
 
 	virtual bool Start(char* comport, int baudrate) ;	
+	virtual bool Start(char* ipaddr, char* portnum) { return false; }
 	virtual void Stop() ;
 
 	virtual int Write(char *Out_Buffer, int Length) ;

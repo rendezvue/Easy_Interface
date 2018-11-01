@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include "Interface_Uart.h"
 Interface_Uart::Interface_Uart()
 {

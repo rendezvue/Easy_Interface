@@ -27,6 +27,7 @@ public:
 	~Interface_Base(){}
 
 	virtual bool Start(char* comport, int baudrate) = 0;		
+	virtual bool Start(char* ipaddr, char* portnum) = 0;
 	virtual void Stop() = 0;
 	
 	virtual int Write(char *Out_Buffer, int Length) = 0;
