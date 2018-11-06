@@ -4,11 +4,11 @@ Interface_Tcp::Interface_Tcp()
 {
 //	m_serial_port = NULL;
 	m_Socket = NULL;
+	m_isCon_OK = false;
 }
 
 Interface_Tcp::~Interface_Tcp()
 {
-
 }
 
 
@@ -68,7 +68,12 @@ void Interface_Tcp::Read_Handler(const boost::system::error_code& error, size_t 
 	}
 	else
 	{
-		printf("TCP Read Fail!!!!!!\n");
+		if (error == boost::asio::error::eof)
+		{
+			printf("[TCP Read Fail]Connection is broken\n");
+			Stop();
+		}
+		//delete this;
 		// do somethings...
 	}
 }
@@ -90,7 +95,12 @@ void Interface_Tcp::Write_Handler(const boost::system::error_code& error)
 	}
 	else
 	{
-		printf("TCP Write Fail!!!!!!\n");
+		if (error == boost::asio::error::eof)
+		{
+			printf("[TCP Write Fail]Connection is broken\n");
+			Stop();
+		}		
+//		delete this;
 	}
 }
 
@@ -107,6 +117,7 @@ void Interface_Tcp::Connect_Handler(const boost::system::error_code& error, tcp:
 {
 	if (!error) // success, so start waiting for read data 
 	{
+		m_isCon_OK = true;
 		Read_Start();
 	}
 	else if (endpoint_iterator != tcp::resolver::iterator())
@@ -114,6 +125,22 @@ void Interface_Tcp::Connect_Handler(const boost::system::error_code& error, tcp:
 		m_Socket->close();
 		Connect_Start(endpoint_iterator);
 	}
+}
+
+bool Interface_Tcp::Connect_Accept_Wait(int milliseconds)
+{
+	for (int i = 0; i < milliseconds; i++)
+	{
+		if (isAlive() == true)
+		{
+			return true;
+		}
+		else
+		{
+			boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
+		}
+	}
+	return false;
 }
 
 void Interface_Tcp::Thread_Func()
@@ -136,6 +163,7 @@ void Interface_Tcp::Thread_Func()
 		int len = strlen(text);
 		//m_Telnet->write_buf((char*)text, len);
 	}
+	m_isCon_OK = false;
 }
 
 bool Interface_Tcp::Start(char* ipaddr, char* portnum)
@@ -148,6 +176,12 @@ bool Interface_Tcp::Start(char* ipaddr, char* portnum)
 		m_Portnum = std::string(portnum);
 		m_Thread = new boost::thread(boost::bind(&Interface_Tcp::Thread_Func, this));
 		// run the IO service as a separate thread, so the main thread can block on standard input 
+		bool connection_accept = Connect_Accept_Wait(1000);
+		if (connection_accept == false)
+		{
+			printf("Server is not response!\n");
+		}
+		return connection_accept;
 	}
 	catch (boost::exception& e)
 	{
@@ -159,29 +193,21 @@ bool Interface_Tcp::Start(char* ipaddr, char* portnum)
 }
 
 void Interface_Tcp::Stop()
-{
-	m_Socket->close();
+{	
+	if (m_Socket != NULL)
+	{
+#if defined(_WIN32) || defined(WIN32)
+		TerminateThread(m_Thread->native_handle(), 0);
+#else
+		pthread_cancel(m_Thread->native_handle());
+#endif
+		m_isCon_OK = false;
+//		m_Socket->close();
+	}
 }
 
 bool Interface_Tcp::isAlive()
 {
-	if (m_Socket != NULL )
-	{			
-		int received = 0;
-		try {
-			char buf[100];
-			int received = m_Socket->receive(boost::asio::buffer(buf), tcp::socket::message_peek);
-		}
-		catch(boost::exception &e)
-		{
-			printf("Check Message Peek ERRER!!, Connection Failed\n");
-			return false;
-		}				
-		return true;
-	}
-	else
-	{
-		return false;
-	}	
+	return m_isCon_OK;
 }
 

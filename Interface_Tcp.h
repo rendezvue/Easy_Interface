@@ -12,6 +12,8 @@ private:
 private:
 	void Connect_Start(tcp::resolver::iterator endpoint_iterator);
 	void Connect_Handler(const boost::system::error_code& error, tcp::resolver::iterator endpoint_iterator);
+	bool Connect_Accept_Wait(int milliseconds);
+	bool m_isCon_OK;
 private:
 
 	virtual void Thread_Func() ;
