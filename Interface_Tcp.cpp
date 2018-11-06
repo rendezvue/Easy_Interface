@@ -3,6 +3,7 @@
 Interface_Tcp::Interface_Tcp()
 {
 //	m_serial_port = NULL;
+	m_Socket = NULL;
 }
 
 Interface_Tcp::~Interface_Tcp()
@@ -123,7 +124,9 @@ void Interface_Tcp::Thread_Func()
 	tcp::resolver::query query(m_Ipaddr.c_str(), m_Portnum.c_str());
 	tcp::resolver::iterator iterator = resolver.resolve(query);
 
-	m_Socket = new tcp::socket(m_io_service);
+	//m_Socket = tcp::socket socket();
+	tcp::socket mysocket(m_io_service);
+	m_Socket = &mysocket;
 	Connect_Start(iterator);
 	boost::thread t(boost::bind(&boost::asio::io_service::run, &m_io_service));
 	while (1)
@@ -163,10 +166,22 @@ void Interface_Tcp::Stop()
 bool Interface_Tcp::isAlive()
 {
 	if (m_Socket != NULL )
-	{
-		bool isalive = m_Socket->is_open();		
-		return isalive;
+	{			
+		int received = 0;
+		try {
+			char buf[100];
+			int received = m_Socket->receive(boost::asio::buffer(buf), tcp::socket::message_peek);
+		}
+		catch(boost::exception &e)
+		{
+			printf("Check Message Peek ERRER!!, Connection Failed\n");
+			return false;
+		}				
+		return true;
 	}
-	return false;
+	else
+	{
+		return false;
+	}	
 }
 
