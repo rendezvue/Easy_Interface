@@ -85,10 +85,11 @@ void Interface_Tcp::Write_Handler(const boost::system::error_code& error)
 {
 	if (!error)
 	{	
+		//printf("TCP Write Success!!!!!!!\n");
 	}
 	else
 	{
-		printf("Uart Write Fail!!!!!!\n");
+		printf("TCP Write Fail!!!!!!\n");
 	}
 }
 
@@ -161,10 +162,11 @@ void Interface_Tcp::Stop()
 
 bool Interface_Tcp::isAlive()
 {
-	/*if (m_Socket == NULL )
+	if (m_Socket != NULL )
 	{
-		return false;
-	}*/
-	return true;
+		bool isalive = m_Socket->is_open();		
+		return isalive;
+	}
+	return false;
 }
 
