@@ -4,6 +4,7 @@
 
 class Interface_Tcp: public Interface_Base {
 private:	
+	asio::io_service *m_io_service;
 	tcp::socket *m_Socket; // the socket this instance is connected to 
 	std::string m_Ipaddr;
 	std::string m_Portnum;

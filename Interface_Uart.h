@@ -4,6 +4,7 @@
 
 class Interface_Uart: public Interface_Base{
 private:
+	asio::io_service m_io_service;
 	asio::serial_port *m_serial_port;
 	enum { MAX_BUFFER_READ = 1024 };
 	char m_Buffer_Read[MAX_BUFFER_READ];

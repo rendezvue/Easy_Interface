@@ -4,11 +4,16 @@ Interface_Tcp::Interface_Tcp()
 {
 //	m_serial_port = NULL;
 	m_Socket = NULL;
+	m_io_service = NULL;
 	m_isCon_OK = false;
 }
 
 Interface_Tcp::~Interface_Tcp()
 {
+	while (m_Socket != NULL)
+	{
+		boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
+	}
 }
 
 
@@ -71,7 +76,7 @@ void Interface_Tcp::Read_Handler(const boost::system::error_code& error, size_t 
 		if (error == boost::asio::error::eof)
 		{
 			printf("[TCP Read Fail]Connection is broken\n");
-			Stop();
+			m_Socket->close();
 		}
 		//delete this;
 		// do somethings...
@@ -98,7 +103,7 @@ void Interface_Tcp::Write_Handler(const boost::system::error_code& error)
 		if (error == boost::asio::error::eof)
 		{
 			printf("[TCP Write Fail]Connection is broken\n");
-			Stop();
+			m_Socket->close();
 		}		
 //		delete this;
 	}
@@ -123,7 +128,7 @@ void Interface_Tcp::Connect_Handler(const boost::system::error_code& error, tcp:
 	else if (endpoint_iterator != tcp::resolver::iterator())
 	{ // failed, so wait for another connection event 
 		m_Socket->close();
-		Connect_Start(endpoint_iterator);
+		//Connect_Start(endpoint_iterator);
 	}
 }
 
@@ -145,24 +150,30 @@ bool Interface_Tcp::Connect_Accept_Wait(int milliseconds)
 
 void Interface_Tcp::Thread_Func()
 {
-	printf("[%s:%d]\n",__func__,__LINE__);
-	tcp::resolver resolver(m_io_service);
+	asio::io_service io_service;
+	m_io_service = &io_service;
+	tcp::resolver resolver(io_service);
 	//		tcp::resolver::query query(ipaddr, portnum);
 	tcp::resolver::query query(m_Ipaddr.c_str(), m_Portnum.c_str());
 	tcp::resolver::iterator iterator = resolver.resolve(query);
 
 	//m_Socket = tcp::socket socket();
-	tcp::socket mysocket(m_io_service);
+	tcp::socket mysocket(io_service);
 	m_Socket = &mysocket;
 	Connect_Start(iterator);
-	boost::thread t(boost::bind(&boost::asio::io_service::run, &m_io_service));
+	
+	boost::thread t(boost::bind(&boost::asio::io_service::run, &io_service));
 	while (1)
 	{
-		boost::this_thread::sleep_for(boost::chrono::milliseconds(1000));
-		const char* text = "Client Heart beat( Test Code )\n";
-		int len = strlen(text);
+		boost::this_thread::sleep_for(boost::chrono::milliseconds(10));
+		if (io_service.stopped() == true)
+		{
+			printf("IO Service Stopped!\n");
+			m_Socket = NULL;
+			break;
+		}
 		//m_Telnet->write_buf((char*)text, len);
-	}
+	}	
 	m_isCon_OK = false;
 }
 
@@ -194,16 +205,15 @@ bool Interface_Tcp::Start(char* ipaddr, char* portnum)
 
 void Interface_Tcp::Stop()
 {	
-	if (m_Socket != NULL)
+	if( isAlive() == true )
 	{
-#if defined(_WIN32) || defined(WIN32)
-		TerminateThread(m_Thread->native_handle(), 0);
-#else
-		pthread_cancel(m_Thread->native_handle());
-#endif
-		m_isCon_OK = false;
-//		m_Socket->close();
+		m_Socket->close();
 	}
+	while (m_Socket != NULL)
+	{
+		boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
+	}
+	m_isCon_OK = false;
 }
 
 bool Interface_Tcp::isAlive()

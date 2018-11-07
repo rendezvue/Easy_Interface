@@ -24,7 +24,7 @@ private:
 
 public:
 	Interface_Base(){}
-	~Interface_Base(){}
+	virtual ~Interface_Base(){}
 
 	virtual bool Start(char* comport, int baudrate) = 0;		
 	virtual bool Start(char* ipaddr, char* portnum) = 0;
@@ -36,7 +36,6 @@ public:
 
 protected:
 	boost::mutex m_mutex;
-	asio::io_service m_io_service;
 	std::deque<char> m_RcvBuffer;
 	std::deque<char*> m_SendBuffer;
 	boost::thread* m_Thread;
