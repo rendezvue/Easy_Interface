@@ -49,18 +49,25 @@ int Interface_Tcp::ReadLen(char *In_Buffer, int Length)
 void Interface_Tcp::Read_Start()
 {
 	//printf("Read_Start!\n");
-	if (m_Socket != NULL)
-	{
-		m_Socket->async_read_some(boost::asio::buffer(m_Buffer_Read, MAX_BUFFER_READ),
-			boost::bind(&Interface_Tcp::Read_Handler,
-				this,
-				boost::asio::placeholders::error,
-				boost::asio::placeholders::bytes_transferred));
+	try {
+		if (m_Socket != NULL)
+		{
+			m_Socket->async_read_some(boost::asio::buffer(m_Buffer_Read, MAX_BUFFER_READ),
+				boost::bind(&Interface_Tcp::Read_Handler,
+					this,
+					boost::asio::placeholders::error,
+					boost::asio::placeholders::bytes_transferred));
+		}
+		else
+		{
+			m_isCon_OK = false;
+		}
 	}
-	else
+	catch (boost::exception &e)
 	{
 		m_isCon_OK = false;
 	}
+	
 }
 
 void Interface_Tcp::Read_Handler(const boost::system::error_code& error, size_t bytes_transferred)
@@ -96,19 +103,24 @@ void Interface_Tcp::Read_Handler(const boost::system::error_code& error, size_t 
 
 void Interface_Tcp::Write_Start(char *Out_Buffer, int Length)
 {
-	if (m_Socket != NULL)
-	{
-		boost::asio::async_write(*m_Socket,
-			boost::asio::buffer(Out_Buffer, Length),
-			boost::bind(&Interface_Tcp::Write_Handler,
-				this,
-				boost::asio::placeholders::error));
+	try {
+		if (m_Socket != NULL)
+		{
+			boost::asio::async_write(*m_Socket,
+				boost::asio::buffer(Out_Buffer, Length),
+				boost::bind(&Interface_Tcp::Write_Handler,
+					this,
+					boost::asio::placeholders::error));
+		}
+		else
+		{
+			m_isCon_OK = false;
+		}
 	}
-	else
+	catch (boost::exception &e)
 	{
 		m_isCon_OK = false;
 	}
-	
 }
 
 void Interface_Tcp::Write_Handler(const boost::system::error_code& error)
@@ -125,6 +137,7 @@ void Interface_Tcp::Write_Handler(const boost::system::error_code& error)
 			if (m_Socket != NULL)
 			{
 				m_Socket->close();
+				m_isCon_OK = false;
 			}
 		}		
 //		delete this;
