@@ -49,11 +49,18 @@ int Interface_Tcp::ReadLen(char *In_Buffer, int Length)
 void Interface_Tcp::Read_Start()
 {
 	//printf("Read_Start!\n");
-	m_Socket->async_read_some(boost::asio::buffer(m_Buffer_Read, MAX_BUFFER_READ),
-		boost::bind(&Interface_Tcp::Read_Handler,
-			this,
-			boost::asio::placeholders::error,
-			boost::asio::placeholders::bytes_transferred));
+	if (m_Socket != NULL)
+	{
+		m_Socket->async_read_some(boost::asio::buffer(m_Buffer_Read, MAX_BUFFER_READ),
+			boost::bind(&Interface_Tcp::Read_Handler,
+				this,
+				boost::asio::placeholders::error,
+				boost::asio::placeholders::bytes_transferred));
+	}
+	else
+	{
+		m_isCon_OK = false;
+	}
 }
 
 void Interface_Tcp::Read_Handler(const boost::system::error_code& error, size_t bytes_transferred)
@@ -76,7 +83,11 @@ void Interface_Tcp::Read_Handler(const boost::system::error_code& error, size_t 
 		if (error == boost::asio::error::eof)
 		{
 			printf("[TCP Read Fail]Connection is broken\n");
-			m_Socket->close();
+			if (m_Socket != NULL)
+			{
+				m_Socket->close();
+				m_isCon_OK = false;
+			}
 		}
 		//delete this;
 		// do somethings...
@@ -85,11 +96,19 @@ void Interface_Tcp::Read_Handler(const boost::system::error_code& error, size_t 
 
 void Interface_Tcp::Write_Start(char *Out_Buffer, int Length)
 {
-	boost::asio::async_write(*m_Socket,
-		boost::asio::buffer(Out_Buffer, Length),
-		boost::bind(&Interface_Tcp::Write_Handler,
-			this,
-			boost::asio::placeholders::error));
+	if (m_Socket != NULL)
+	{
+		boost::asio::async_write(*m_Socket,
+			boost::asio::buffer(Out_Buffer, Length),
+			boost::bind(&Interface_Tcp::Write_Handler,
+				this,
+				boost::asio::placeholders::error));
+	}
+	else
+	{
+		m_isCon_OK = false;
+	}
+	
 }
 
 void Interface_Tcp::Write_Handler(const boost::system::error_code& error)
@@ -103,7 +122,10 @@ void Interface_Tcp::Write_Handler(const boost::system::error_code& error)
 		if (error == boost::asio::error::eof)
 		{
 			printf("[TCP Write Fail]Connection is broken\n");
-			m_Socket->close();
+			if (m_Socket != NULL)
+			{
+				m_Socket->close();
+			}
 		}		
 //		delete this;
 	}
@@ -112,7 +134,7 @@ void Interface_Tcp::Write_Handler(const boost::system::error_code& error)
 void Interface_Tcp::Connect_Start(tcp::resolver::iterator endpoint_iterator)
 {
 	tcp::endpoint endpoint = *endpoint_iterator;
-	m_Socket->async_connect(endpoint,
+	if (m_Socket != NULL) m_Socket->async_connect(endpoint,
 		boost::bind(&Interface_Tcp::Connect_Handler,
 			this,
 			boost::asio::placeholders::error,
@@ -127,7 +149,11 @@ void Interface_Tcp::Connect_Handler(const boost::system::error_code& error, tcp:
 	}
 	else if (endpoint_iterator != tcp::resolver::iterator())
 	{ // failed, so wait for another connection event 
-		m_Socket->close();
+		if (m_Socket != NULL)
+		{
+			m_Socket->close();
+			m_isCon_OK = false;
+		}
 		//Connect_Start(endpoint_iterator);
 	}
 }
@@ -169,6 +195,7 @@ void Interface_Tcp::Thread_Func()
 		if (io_service.stopped() == true)
 		{
 			printf("IO Service Stopped!\n");
+			m_isCon_OK = false;
 			m_Socket = NULL;
 			break;
 		}
@@ -206,8 +233,8 @@ bool Interface_Tcp::Start(char* ipaddr, char* portnum)
 void Interface_Tcp::Stop()
 {	
 	if( isAlive() == true )
-	{
-		m_Socket->close();
+	{		
+		if (m_Socket != NULL) m_Socket->close();
 	}
 	while (m_Socket != NULL)
 	{
