@@ -139,6 +139,7 @@ bool Interface_Uart::Start(char* comport, int baudrate)
 			m_serial_port->set_option(asio::serial_port_base::parity(boost::asio::serial_port_base::parity::none));
 			m_serial_port->set_option(asio::serial_port_base::stop_bits(boost::asio::serial_port::stop_bits::one));
 			m_Thread = new boost::thread(boost::bind(&Interface_Uart::Thread_Func, this));
+			printf("comport(%s), baudrate(%d) open success!! \n",comport,baudrate);
 			return true;
 		}
 		catch (boost::exception &e)

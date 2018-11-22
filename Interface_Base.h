@@ -29,9 +29,13 @@ public:
 	virtual bool Start(char* comport, int baudrate) = 0;		
 	virtual bool Start(char* ipaddr, char* portnum) = 0;
 	virtual void Stop() = 0;
-	
+
+	virtual int Write(char *Out_Buffer);
 	virtual int Write(char *Out_Buffer, int Length) = 0;
 	virtual int ReadLen(char *In_Buffer, int Length) = 0;
+	virtual int ReadAvailable() {
+		return m_RcvBuffer.size();
+	}
 	virtual bool isAlive() = 0;
 
 protected:
