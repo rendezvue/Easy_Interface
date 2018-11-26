@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "Interface_Tcp.h"
 Interface_Tcp::Interface_Tcp()
 {

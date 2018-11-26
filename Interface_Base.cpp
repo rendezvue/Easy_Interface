@@ -1,5 +1,3 @@
-#include "stdafx.h"
-
 #include "Interface_Base.h"
 
 /*
@@ -12,6 +10,6 @@ Interface_Base::~Interface_Base(){
 }*/
 int Interface_Base::Write(char *Out_Buffer)
 {
-	Write(Out_Buffer,strlen(Out_Buffer));
+	return Write(Out_Buffer,strlen(Out_Buffer));
 }
 
