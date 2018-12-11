@@ -1,11 +1,26 @@
 #include "Interface_Tcp.h"
+
+boost::asio::io_service g_io_service_none;
+
+Interface_Tcp::Interface_Tcp(boost::asio::io_service& io_service)
+:m_ExtSocket(io_service)
+{
+	m_CB_Read = NULL;
+	m_Socket = &m_ExtSocket;
+	m_isCon_OK = true;
+}
+
+
 Interface_Tcp::Interface_Tcp()
+:m_ExtSocket(g_io_service_none)
 {
 //	m_serial_port = NULL;
 	m_Socket = NULL;
 	m_io_service = NULL;
 	m_isCon_OK = false;
 }
+
+
 
 Interface_Tcp::~Interface_Tcp()
 {
@@ -15,6 +30,10 @@ Interface_Tcp::~Interface_Tcp()
 	}
 }
 
+tcp::socket& Interface_Tcp::Get_Socket()
+{
+	return *m_Socket;
+}
 
 int Interface_Tcp::Write(char *Out_Buffer, int Length)
 {
@@ -59,11 +78,13 @@ void Interface_Tcp::Read_Start()
 		}
 		else
 		{
+			printf("Read Error!\n");
 			m_isCon_OK = false;
 		}
 	}
 	catch (boost::exception &e)
 	{
+		printf("Read Exception!\n");
 		m_isCon_OK = false;
 	}
 	
@@ -74,6 +95,10 @@ void Interface_Tcp::Read_Handler(const boost::system::error_code& error, size_t 
 	if (!error)
 	{
 		//printf("READ HANDLER!!!\n");		
+		if( m_CB_Read != NULL )
+		{
+			m_CB_Read(m_Buffer_Read, bytes_transferred);
+		}
 		boost::lock_guard<boost::mutex> lock(m_mutex);
 		{
 			for (int i = 0; i < bytes_transferred; i++)
@@ -113,11 +138,13 @@ void Interface_Tcp::Write_Start(char *Out_Buffer, int Length)
 		}
 		else
 		{
+			printf("Write Fail!!\n");
 			m_isCon_OK = false;
 		}
 	}
 	catch (boost::exception &e)
 	{
+		printf("Write Exception!! conection broken\n");
 		m_isCon_OK = false;
 	}
 }

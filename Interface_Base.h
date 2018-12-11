@@ -9,6 +9,9 @@
 
 #include <deque>
 #include <iostream>
+#include <vector>
+#include <cstdlib>
+
 
 using boost::asio::ip::tcp;
 using namespace std;
