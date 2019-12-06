@@ -1,4 +1,6 @@
 #include "Interface_Tcp.h"
+#include <iostream>
+#include <boost/asio.hpp>
 
 boost::asio::io_service g_io_service_none;
 
@@ -26,7 +28,7 @@ Interface_Tcp::~Interface_Tcp()
 {
 	while (m_Socket != NULL)
 	{
-		boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
+		boost::this_thread::sleep(boost::posix_time::milliseconds(1));
 	}
 }
 
@@ -94,7 +96,7 @@ void Interface_Tcp::Read_Handler(const boost::system::error_code& error, size_t 
 {
 	if (!error)
 	{
-		//printf("READ HANDLER!!!\n");		
+//printf("READ HANDLER!!!\n");		
 		if( m_CB_Read != NULL )
 		{
 			m_CB_Read(m_Buffer_Read, bytes_transferred);
@@ -207,7 +209,7 @@ bool Interface_Tcp::Connect_Accept_Wait(int milliseconds)
 		}
 		else
 		{
-			boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
+			boost::this_thread::sleep(boost::posix_time::milliseconds(1));
 		}
 	}
 	return false;
@@ -230,7 +232,7 @@ void Interface_Tcp::Thread_Func()
 	boost::thread t(boost::bind(&boost::asio::io_service::run, &io_service));
 	while (1)
 	{
-		boost::this_thread::sleep_for(boost::chrono::milliseconds(10));
+		boost::this_thread::sleep(boost::posix_time::milliseconds(10));
 		if (io_service.stopped() == true)
 		{
 			printf("IO Service Stopped!\n");
@@ -277,7 +279,7 @@ void Interface_Tcp::Stop()
 	}
 	while (m_Socket != NULL)
 	{
-		boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
+		boost::this_thread::sleep(boost::posix_time::milliseconds(1));
 	}
 	m_isCon_OK = false;
 }

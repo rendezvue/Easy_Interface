@@ -27,7 +27,7 @@ private:
 
 public:
 	Interface_Tcp(boost::asio::io_service& io_service);
-	Interface_Tcp();	
+	Interface_Tcp();
 	~Interface_Tcp();
 	tcp::socket& Get_Socket();
 
